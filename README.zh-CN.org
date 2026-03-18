@@ -1,38 +1,72 @@
-#+title: Hello World
+#+title: blueutil.el
 #+author: Qiqi Jin
 #+language: zh
 
+#+HTML: <a href="https://github.com/ginqi7/blueutil.el/blob/master/README.org"><img src="https://img.shields.io/badge/README-English-555555.svg"/></a>
+
 * 概述
+
+blueutil.el 是一个 Emacs 包，它通过 [[https://github.com/toy/blueutil][blueutil]] 命令行工具为 macOS 提供便捷的蓝牙设备管理功能。它允许你在 Emacs 中列出已配对的设备、连接/断开设备，以及搜索已配对的设备。
 
 * 前提
 
-** 需要的 Emacs 包
++ macOS 操作系统
++ 通过 Homebrew 安装 ~blueutil~ 命令行工具：
+  #+BEGIN_SRC sh
+    brew install blueutil
+  #+END_SRC
 
 ** 安装
-+ 克隆项目到你自己的 Emacs 配置目录下：
-#+BEGIN_SRC sh
-  git clone https://github.com/ginqi7/blueutil.el ~/.emacs.d/lisp/blueutil;
-#+END_SRC
 
-+ 把克隆的路径添加到 =load-path= 当中
-#+BEGIN_SRC emacs-lisp
-  (add-to-list 'load-path "~/.emacs.d/lisp/blueutil")
-#+END_SRC
++ 克隆仓库到你的 Emacs 配置目录：
+  #+BEGIN_SRC sh
+    git clone https://github.com/ginqi7/blueutil.el ~/.emacs.d/lisp/blueutil
+  #+END_SRC
+
++ 在 Emacs 配置中将目录添加到 ~load-path~：
+  #+BEGIN_SRC emacs-lisp
+    (add-to-list 'load-path "~/.emacs.d/lisp/blueutil")
+  #+END_SRC
 
 * 配置
 
+在 Emacs 配置中加载包：
+
 #+BEGIN_SRC emacs-lisp
   (require 'blueutil)
-#+end_src
+#+END_SRC
 
 ** 变量
 
-| 变量 | 默认值 | 解释 |
-|------+--------+------|
-|      |        |      |
+| 变量                 | 默认值                | 描述                         |
+|----------------------+-----------------------+------------------------------|
+| ~blueutil-command~   | blueutil 二进制路径    | 用于与蓝牙交互的命令          |
 
 * 特性
 
++ ~blueutil-paired~ - 列出所有已配对的蓝牙设备
++ ~blueutil-connected~ - 列出所有当前已连接的蓝牙设备
++ ~blueutil-connect~ - 通过 ID 连接到蓝牙设备
++ ~blueutil-disconnect~ - 通过 ID 断开蓝牙设备
++ ~blueutil-search-paired~ - 交互式界面搜索和管理配对设备
+
 * 例子
+
+#+BEGIN_SRC emacs-lisp
+  ;; 列出所有已配对的设备
+  (blueutil-paired)
+
+  ;; 列出已连接的设备
+  (blueutil-connected)
+
+  ;; 连接到设备（使用设备的地址）
+  (blueutil-connect "12-34-56-78-9a-bc")
+
+  ;; 断开设备
+  (blueutil-disconnect "12-34-56-78-9a-bc")
+
+  ;; 交互式搜索 - M-x blueutil-search-paired
+  (blueutil-search-paired)
+#+END_SRC
 
 * Footnotes
