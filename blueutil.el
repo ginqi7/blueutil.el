@@ -49,14 +49,14 @@ COMMAND is a symbol representing the blueutil subcommand to execute.
 OPTIONS is an optional list of additional command-line arguments.
 
 Returns the parsed JSON result as Emacs Lisp data structures,
-with arrays converted to lists and JSON booleans to nil."
+with arrays converted to lists and JSON booleans to nil.
+Returns nil if the command produces no output."
   (let ((output (blueutil--run command options)))
-    (json-parse-string
-     output
-     :array-type 'list
-     :false-object nil)))
-
-;; (defun blueutil--run-str ())
+    (unless (string-empty-p output)
+      (json-parse-string
+       output
+       :array-type 'list
+       :false-object nil))))
 
 (defun blueutil--run (command &optional options)
   "Execute a blueutil COMMAND with OPTIONS and return the raw output.
@@ -66,7 +66,9 @@ OPTIONS is an optional list of additional command-line arguments.
 
 Returns the raw string output from the shell command.  The command
 is executed with --format json and the specified COMMAND and OPTIONS."
-  (shell-command-to-string (format "%s --format json --%s %s" blueutil-command command (string-join options " "))))
+  (let ((opts (if options (string-join options " ") "")))
+    (shell-command-to-string
+     (format "%s --format json --%s %s" blueutil-command command opts))))
 
 (defun blueutil--info-key (info)
   "Generate a display key for a Bluetooth device INFO hash.
@@ -113,33 +115,12 @@ Example:
   ;;     ...)"
   (blueutil--run-json 'connected))
 
-(defun blueutil-connect (id)
-  "Connect to a Bluetooth device with the specified ID.
+(defun blueutil-connect-device (id action)
+  "Connect or disconnect a Bluetooth device with the specified ID.
 
-ID is the unique address (MAC address) of the Bluetooth device
-to connect to, as a string.
-
-This command initiates a connection attempt to the device.  If the
-device is paired and in range, it should connect successfully.
-
-Example:
-  (blueutil-connect \"xx:xx:xx:xx:xx:xx\")
-  ;; => \"\" (empty string on success)"
-  (blueutil--run 'connect (list id)))
-
-(defun blueutil-disconnect (id)
-  "Disconnect from a Bluetooth device with the specified ID.
-
-ID is the unique address (MAC address) of the Bluetooth device
-to disconnect from, as a string.
-
-This command terminates the active connection to the device.  The
-device remains paired and can be reconnected later.
-
-Example:
-  (blueutil-disconnect \"xx:xx:xx:xx:xx:xx\")
-  ;; => \"\" (empty string on success)"
-  (blueutil--run 'disconnect (list id)))
+ID is the unique address (MAC address) of the Bluetooth device.
+ACTION is a symbol, either 'connect or 'disconnect."
+  (blueutil--run action (list id)))
 
 (defun blueutil-search-paired ()
   "Interactively select and manage a paired Bluetooth device.
@@ -155,16 +136,17 @@ command is executed to perform the operation.
 Example usage:
   M-x blueutil-search-paired"
   (interactive)
-  (when-let* ((pairs (blueutil-paired))
-              (selected (completing-read "Select a bluetooth: " (mapcar #'blueutil--info-key pairs)))
-              (action (completing-read (format "What are you doing for %s: " selected)
-                                       '(connect disconnect)))
-              (selected-pair (find-if (lambda (pair) (string= (blueutil--info-key pair) selected)) pairs)))
-    (pcase action
-      ("connect"
-       (blueutil-connect (gethash "address" selected-pair)))
-      ("disconnect"
-       (blueutil-disconnect (gethash "address" selected-pair))))))
+  (let ((pairs (blueutil-paired)))
+    (when pairs
+      (let* ((choices (mapcar (lambda (p)
+                                (cons (blueutil--info-key p)
+                                      (gethash "address" p)))
+                              pairs))
+             (selected (completing-read "Select a bluetooth: " choices))
+             (address (cdr (assoc selected choices)))
+             (action (completing-read (format "What are you doing for %s: " selected)
+                                      '(connect disconnect))))
+        (blueutil-connect-device address (intern action))))))
 
 (provide 'blueutil)
 ;;; blueutil.el ends here
