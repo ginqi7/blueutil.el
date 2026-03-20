@@ -26,10 +26,9 @@
 ;;   M-x blueutil-search-paired  ; Interactive interface to manage paired devices
 ;;
 ;; Or programmatically:
-;;   (blueutil-paired)       ; List paired devices
-;;   (blueutil-connected)    ; List connected devices
-;;   (blueutil-connect id)   ; Connect to a device
-;;   (blueutil-disconnect id) ; Disconnect a device
+;;   (blueutil-paired)            ; List paired devices
+;;   (blueutil-connected)         ; List connected devices
+;;   (blueutil-connect-device id) ; Connect/disconnect a device
 
 ;;; Code:
 
